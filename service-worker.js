@@ -1,25 +1,35 @@
-
-const CACHE_NAME = 'kbank-mock-v1';
+// 간단 App Shell 캐시
+const CACHE = 'kbank-v1';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './manifest.json'
+  // 필요시 추가: './icons/icon-192.png', './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)))
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
 });
 
+// 네트워크 우선, 실패 시 캐시
 self.addEventListener('fetch', (e) => {
+  const { request } = e;
+  if (request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+    fetch(request).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE).then((c) => c.put(request, copy));
+      return res;
+    }).catch(() => caches.match(request))
   );
 });
