@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Kbank – 데모</title>
+  <meta name="theme-color" content="#0c3bd9" />
   <link rel="manifest" href="manifest.json">
   <style>
     :root{
@@ -15,7 +16,6 @@
     html,body{
       margin:0;height:100%;
       color:var(--kb-text);background:#f6f7fb;
-      /* 숫자폭 고정 + 한글 서체 우선 강제 */
       font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       font-variant-numeric:tabular-nums;
       font-feature-settings:"tnum" 1;
@@ -68,26 +68,23 @@
     .tx-list{margin-top:8px}
     .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
 
-    /* 날짜줄 */
     .tx-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#9ca3af;font-size:12px}
 
-    /* 거래명-금액 라인(수평 정렬 → 항목명과 베이스라인 맞춤) */
     .tx-row{
       display:flex;
       justify-content:space-between;
-      align-items:baseline;   /* ← 핵심: 금액을 ‘항목명’과 같은 라인에 */
+      align-items:baseline;
       margin-bottom:4px;
       gap:12px
     }
     .tx-name{font-weight:700;word-break:keep-all;line-height:1.4}
 
-    /* ★ 금액 서체 = 잔액 서체와 100% 동일하게 강제 */
     .tx-amt{
       font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
       font-synthesis:none;
       font-size:17px;
-      font-weight:500;        /* ← 800에서 500으로: 대체폰트 방지(‘원’ 동일) */
+      font-weight:500;
       line-height:1.4;
       text-align:right;
       letter-spacing:0;
@@ -95,12 +92,36 @@
     .deposit{color:#2563eb}
     .withdraw{color:#d32f2f}
 
-    /* 잔액(동일 서체/세팅) */
     .tx-bal{
       font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
       font-synthesis:none;
       color:#94a3b8;font-size:12px;text-align:right;
+    }
+
+    /* ===== 선택 버튼 스타일 ===== */
+    .opt{
+      padding:12px;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      background:#fff;
+      text-align:center;
+      cursor:pointer;
+      transition:border-color .15s, box-shadow .15s, color .15s;
+    }
+    .opt.selected{
+      border-color:var(--kb-blue);
+      box-shadow:0 0 0 3px rgba(12,59,217,.12);
+      color:var(--kb-blue);
+      font-weight:800;
+    }
+
+    /* ===== 설치 버튼 ===== */
+    #installBtn{
+      position:fixed;right:16px;bottom:86px;z-index:50;
+      height:44px;padding:0 14px;border-radius:12px;border:0;
+      background:var(--kb-blue);color:#fff;font-weight:900;display:none;
+      box-shadow:0 8px 20px rgba(12,59,217,.25);
     }
   </style>
 </head>
@@ -159,6 +180,9 @@
 
     <div id="txList" class="tx-list"></div>
   </section>
+
+  <!-- 설치 버튼 -->
+  <button id="installBtn" aria-label="앱 설치">앱 설치</button>
 
   <!-- ===== Filter Sheet ===== -->
   <div id="mask" class="mask" style="position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s"></div>
@@ -315,6 +339,34 @@
       document.getElementById('openFilter').textContent=`${p[state.period]}·${t[state.type]}·${s[state.sort]} ⌄`;
       render(); closeSheet();
     });
+
+    /* ===== PWA: SW 등록 + 설치 핸들러 ===== */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js').catch(console.error);
+      });
+    }
+    let deferredPrompt=null;
+    const installBtn=document.getElementById('installBtn');
+
+    window.addEventListener('beforeinstallprompt',(e)=>{
+      e.preventDefault();           // 크롬의 자동 배너 막고
+      deferredPrompt=e;             // 저장
+      installBtn.style.display='block';   // 버튼 표시
+    });
+
+    installBtn.addEventListener('click', async ()=>{
+      if(!deferredPrompt) return;
+      installBtn.disabled=true;
+      deferredPrompt.prompt();                 // 설치 다이얼로그
+      const { outcome } = await deferredPrompt.userChoice;
+      // outcome: 'accepted' | 'dismissed'
+      deferredPrompt=null;
+      setTimeout(()=>{ installBtn.style.display='none'; installBtn.disabled=false;}, 300);
+    });
+
+    // 이미 설치된 상태에서는 버튼 숨김
+    window.addEventListener('appinstalled', ()=>{ installBtn.style.display='none'; });
   </script>
 </body>
 </html>
