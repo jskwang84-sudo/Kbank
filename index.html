@@ -8,17 +8,17 @@
   <style>
     :root{
       --kb-blue:#0c3bd9;
-      --kb-bg:#eef2ff;
       --kb-card:#ffffff;
       --kb-text:#0f172a;
-      --radius:16px;
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{
       margin:0;height:100%;
-      background:#f6f7fb;color:var(--kb-text);
-      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;
-      font-variant-numeric: tabular-nums; /* 숫자폭 고정 */
+      color:var(--kb-text);background:#f6f7fb;
+      /* 숫자폭 고정 + 한글 서체 우선 강제 */
+      font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-variant-numeric:tabular-nums;
+      font-feature-settings:"tnum" 1;
     }
 
     /* ===== View 전환 ===== */
@@ -37,7 +37,7 @@
     .wrap{padding:14px 14px 92px}
     .banner{background:#e9f0ff;border:1px solid #dbe6ff;color:#1e3a8a;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px}
     .section-title{font-weight:800;margin:16px 4px 8px}
-    .card{background:var(--kb-card);border-radius:var(--radius);box-shadow:0 1px 6px rgba(0,0,0,.06);padding:16px}
+    .card{background:var(--kb-card);border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,.06);padding:16px}
     #acctArea{display:block;border:1px solid #eff3fb;border-radius:14px;padding:16px;cursor:pointer}
     #acctArea:active{transform:scale(.995)}
     .acct-num{color:#64748b;margin:8px 0 12px}
@@ -61,47 +61,32 @@
     .row .btn{flex:1}
     .chips{display:flex;gap:10px;align-items:center}
     .chip{font-size:12px;color:#475569;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
+
     .tx-list{margin-top:8px}
     .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
 
-    /* 날짜/금액 줄 */
+    /* 날짜줄 */
     .tx-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#9ca3af;font-size:12px}
 
-    /* 거래명과 금액 한 줄로 정렬 */
-    .tx-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+    /* 거래명-금액 라인(수평 정렬) */
+    .tx-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:12px}
     .tx-name{font-weight:700;word-break:keep-all}
+
+    /* ★ 금액 서체 = 잔액 서체와 100% 동일하게 강제 */
     .tx-amt{
-      font-size:17px;
-      font-weight:800;
-      font-family:inherit;
-      font-variant-numeric:tabular-nums;
-      line-height:1.4;
-      text-align:right;
+      font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
+      font-size:17px; font-weight:800; line-height:1.4; text-align:right;
     }
     .deposit{color:#2563eb}
     .withdraw{color:#d32f2f}
 
-    /* 잔액 */
+    /* 잔액(동일 서체/세팅) */
     .tx-bal{
+      font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
       color:#94a3b8;font-size:12px;text-align:right;
-      font-family:inherit;font-variant-numeric:tabular-nums;
     }
-
-    /* ===== 바텀시트 ===== */
-    .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s}
-    .mask.show{opacity:1;pointer-events:auto}
-    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:20px;border-top-right-radius:20px;box-shadow:0 -10px 30px rgba(0,0,0,.2);transition:bottom .25s ease;z-index:30}
-    .sheet.show{bottom:0}
-    .sheet-head{padding:16px;border-bottom:1px solid #edf0f4;font-weight:800}
-    .sheet-body{padding:14px 16px 22px}
-    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    .opt{padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;text-align:center}
-    .opt.selected{border-color:var(--kb-blue);box-shadow:0 0 0 3px rgba(12,59,217,.12);font-weight:800;color:var(--kb-blue)}
-    .range{display:flex;gap:10px}
-    .range input{flex:1;height:44px;border:1px solid #e5e7eb;border-radius:12px;padding:0 12px}
-    .confirm{margin-top:10px;width:100%;height:52px;border:0;border-radius:14px;background:var(--kb-blue);color:#fff;font-weight:900}
   </style>
 </head>
 <body>
@@ -160,13 +145,13 @@
     <div id="txList" class="tx-list"></div>
   </section>
 
-  <!-- ===== Mask + Sheet ===== -->
-  <div id="mask" class="mask"></div>
-  <div id="sheet" class="sheet" role="dialog" aria-modal="true">
-    <div class="sheet-head">조회 조건</div>
-    <div class="sheet-body">
+  <!-- ===== Filter Sheet ===== -->
+  <div id="mask" class="mask" style="position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s"></div>
+  <div id="sheet" class="sheet" role="dialog" aria-modal="true" style="position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:20px;border-top-right-radius:20px;box-shadow:0 -10px 30px rgba(0,0,0,.2);transition:bottom .25s ease;z-index:30">
+    <div class="sheet-head" style="padding:16px;border-bottom:1px solid #edf0f4;font-weight:800">조회 조건</div>
+    <div class="sheet-body" style="padding:14px 16px 22px">
       <div style="font-weight:800;margin:6px 0 8px">기간</div>
-      <div class="grid-4" id="periodBtns">
+      <div class="grid-4" id="periodBtns" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
         <button class="opt" data-period="1m">1개월</button>
         <button class="opt selected" data-period="3m">3개월</button>
         <button class="opt" data-period="6m">6개월</button>
@@ -174,25 +159,25 @@
       </div>
 
       <div style="font-weight:800;margin:16px 0 8px">유형</div>
-      <div class="grid-3" id="typeBtns">
+      <div class="grid-3" id="typeBtns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         <button class="opt selected" data-type="all">전체</button>
         <button class="opt" data-type="withdraw">출금만</button>
         <button class="opt" data-type="deposit">입금만</button>
       </div>
 
       <div style="font-weight:800;margin:16px 0 8px">순서</div>
-      <div class="grid-2" id="sortBtns">
+      <div class="grid-2" id="sortBtns" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
         <button class="opt selected" data-sort="latest">최신순</button>
         <button class="opt" data-sort="oldest">과거순</button>
       </div>
 
       <div style="font-weight:800;margin:16px 0 8px">금액</div>
-      <div class="range">
-        <input id="minAmt" placeholder="최소" inputmode="numeric">
-        <input id="maxAmt" placeholder="최대" inputmode="numeric">
+      <div class="range" style="display:flex;gap:10px">
+        <input id="minAmt" placeholder="최소" inputmode="numeric" style="flex:1;height:44px;border:1px solid #e5e7eb;border-radius:12px;padding:0 12px">
+        <input id="maxAmt" placeholder="최대" inputmode="numeric" style="flex:1;height:44px;border:1px solid #e5e7eb;border-radius:12px;padding:0 12px">
       </div>
 
-      <button id="applyFilter" class="confirm">확인</button>
+      <button id="applyFilter" class="confirm" style="margin-top:10px;width:100%;height:52px;border:0;border-radius:14px;background:#0c3bd9;color:#fff;font-weight:900">확인</button>
     </div>
   </div>
 
@@ -207,14 +192,50 @@
     function goHome(){ tx.classList.remove('active'); home.classList.remove('hidden'); }
     transferBtn.addEventListener('click',()=>alert('데모: 이체 기능은 준비 중입니다.'));
 
-    /* ===== 거래 데이터 ===== */
-    const data=[
-      {date:'2025-10-24',time:'14:00',name:'CD현금지급',type:'withdraw',amount:100000,balance:10300},
-      {date:'2025-10-24',time:'07:47',name:'이희진',type:'deposit',amount:100000,balance:110300},
-      {date:'2025-10-20',time:'09:12',name:'지에스25 가야대학교',type:'withdraw',amount:100000,balance:10300},
-      {date:'2025-10-20',time:'08:37',name:'이희진',type:'deposit',amount:100000,balance:110300}
+    /* ===== 거래 데이터 (전체 복구) ===== */
+    const data = [
+      {date:'2025-10-24', time:'14:00', name:'CD현금지급', type:'withdraw', amount:100000, balance:10300},
+      {date:'2025-10-24', time:'07:47', name:'이희진', type:'deposit', amount:100000, balance:110300},
+      {date:'2025-10-20', time:'09:12', name:'지에스25 가야대학교', type:'withdraw', amount:100000, balance:10300},
+      {date:'2025-10-20', time:'08:37', name:'이희진', type:'deposit', amount:100000, balance:110300},
+      {date:'2025-10-06', time:'10:27', name:'이희진', type:'deposit', amount:300000, balance:310300},
+      {date:'2025-10-06', time:'10:35', name:'CD현금지급', type:'withdraw', amount:300000, balance:10300},
+      {date:'2025-09-27', time:'05:51', name:'이자', type:'deposit', amount:0, balance:10300},
+      {date:'2025-09-23', time:'08:42', name:'이희진', type:'deposit', amount:100000, balance:110300},
+      {date:'2025-09-23', time:'11:32', name:'CD현금지급', type:'withdraw', amount:100000, balance:10300},
+      {date:'2025-09-14', time:'11:32', name:'지에스25 가야대학교', type:'withdraw', amount:50000, balance:10300},
+      {date:'2025-09-14', time:'09:50', name:'이희진', type:'deposit', amount:50000, balance:60300},
+      {date:'2025-08-20', time:'08:39', name:'이희진', type:'deposit', amount:100000, balance:110300},
+      {date:'2025-08-20', time:'10:53', name:'CD현금지급', type:'withdraw', amount:100000, balance:10300},
+      {date:'2025-08-13', time:'08:39', name:'이희진', type:'deposit', amount:300000, balance:310300},
+      {date:'2025-08-13', time:'14:31', name:'임상운동재활학회', type:'withdraw', amount:300000, balance:10300},
+      {date:'2025-07-30', time:'08:39', name:'이희진', type:'deposit', amount:50000, balance:60300},
+      {date:'2025-07-30', time:'11:53', name:'지에스25 가야대학교', type:'withdraw', amount:50000, balance:10300},
+      {date:'2025-07-28', time:'08:03', name:'이희진', type:'deposit', amount:160000, balance:170300},
+      {date:'2025-07-28', time:'13:21', name:'조성학', type:'withdraw', amount:100000, balance:70300},
+      {date:'2025-07-28', time:'13:23', name:'박기준', type:'withdraw', amount:50000, balance:20300},
+      {date:'2025-07-29', time:'09:48', name:'지에스25 가야대학교', type:'withdraw', amount:10000, balance:10300},
+      {date:'2025-07-26', time:'12:46', name:'지에스25 작천달빛점', type:'withdraw', amount:9700, balance:20300},
+      {date:'2025-07-26', time:'12:32', name:'이희진', type:'deposit', amount:20000, balance:30000},
+      {date:'2025-07-11', time:'16:05', name:'이희진', type:'deposit', amount:300000, balance:310000},
+      {date:'2025-07-11', time:'17:15', name:'정두순', type:'withdraw', amount:300000, balance:10000},
+      {date:'2025-06-03', time:'11:00', name:'이희진', type:'deposit', amount:250000, balance:260000},
+      {date:'2025-06-04', time:'12:05', name:'조성학', type:'withdraw', amount:100000, balance:160000},
+      {date:'2025-06-04', time:'12:11', name:'최영은', type:'withdraw', amount:100000, balance:60000},
+      {date:'2025-06-06', time:'10:24', name:'씨유(CU) 명장새싹점', type:'withdraw', amount:50000, balance:10000},
+      {date:'2025-06-01', time:'12:01', name:'이희진', type:'deposit', amount:10000, balance:30000},
+      {date:'2025-06-01', time:'11:43', name:'이희진', type:'deposit', amount:20000, balance:20000},
+      {date:'2025-06-01', time:'12:04', name:'류종호', type:'withdraw', amount:10000, balance:20000},
+      {date:'2025-06-01', time:'12:17', name:'서영주(착한어무가게', type:'withdraw', amount:10000, balance:10000},
+      {date:'2025-05-13', time:'08:34', name:'이희진', type:'deposit', amount:50000, balance:50000},
+      {date:'2025-05-13', time:'09:08', name:'지에스25 가야대학교', type:'withdraw', amount:50000, balance:0},
+      {date:'2025-02-19', time:'16:00', name:'이희진', type:'deposit', amount:100000, balance:100000},
+      {date:'2025-02-19', time:'16:22', name:'CD현금지급', type:'withdraw', amount:100000, balance:0},
+      {date:'2025-02-05', time:'21:32', name:'이희진', type:'deposit', amount:32000, balance:32000},
+      {date:'2025-02-05', time:'21:34', name:'OPENAI*CHATGPT', type:'withdraw', amount:32000, balance:0}
     ];
 
+    /* ===== 필터 상태/랜더 ===== */
     let state={period:'3m',type:'all',sort:'latest',min:null,max:null};
     const txList=document.getElementById('txList');
     function fmtKR(n){return Number(n).toLocaleString('ko-KR');}
@@ -227,7 +248,6 @@
       const dt=new Date(d.date+'T'+d.time);
       return dt>=start&&dt<=end;
     }
-
     function render(){
       let items=data.filter(d=>withinPeriod(d,state.period));
       if(state.type!=='all')items=items.filter(d=>d.type===state.type);
@@ -235,7 +255,7 @@
       if(state.max)items=items.filter(d=>Math.abs(d.amount)<=Number(state.max));
       items.sort((a,b)=>state.sort==='latest'
         ?new Date(b.date+'T'+b.time)-new Date(a.date+'T'+a.time)
-        :new Date(a.date+'T'+a.time)-new Date(b.date+'T'+a.time));
+        :new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
 
       txList.innerHTML=items.map(d=>{
         const cls=d.type==='deposit'?'deposit':'withdraw';
@@ -259,17 +279,15 @@
     const sheet=document.getElementById('sheet');
     const openFilter=document.getElementById('openFilter');
     const applyBtn=document.getElementById('applyFilter');
-    function openSheet(){mask.classList.add('show');sheet.classList.add('show');}
-    function closeSheet(){mask.classList.remove('show');sheet.classList.remove('show');}
-    openFilter.addEventListener('click',openSheet);
-    mask.addEventListener('click',closeSheet);
+    function openSheet(){mask.style.opacity=1;mask.style.pointerEvents='auto';sheet.style.bottom=0;}
+    function closeSheet(){mask.style.opacity=0;mask.style.pointerEvents='none';sheet.style.bottom='-100%';}
+    openFilter.addEventListener('click',openSheet); mask.addEventListener('click',closeSheet);
     function selectSingle(id,key){
       const box=document.getElementById(id);
       box.addEventListener('click',e=>{
         const btn=e.target.closest('.opt');if(!btn)return;
         Array.from(box.querySelectorAll('.opt')).forEach(b=>b.classList.remove('selected'));
-        btn.classList.add('selected');
-        state[key]=btn.dataset[key];
+        btn.classList.add('selected'); state[key]=btn.dataset[key];
       });
     }
     selectSingle('periodBtns','period');selectSingle('typeBtns','type');selectSingle('sortBtns','sort');
@@ -280,7 +298,7 @@
       const t={'all':'전체','withdraw':'출금만','deposit':'입금만'};
       const s={'latest':'최신순','oldest':'과거순'};
       document.getElementById('openFilter').textContent=`${p[state.period]}·${t[state.type]}·${s[state.sort]} ⌄`;
-      render();closeSheet();
+      render(); closeSheet();
     });
   </script>
 </body>
