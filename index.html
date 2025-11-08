@@ -17,10 +17,11 @@
     html,body{
       margin:0;height:100%;
       background:#f6f7fb;color:var(--kb-text);
-      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif
+      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;
+      font-variant-numeric: tabular-nums; /* 숫자폭 고정 */
     }
 
-    /* ====== View 전환 ====== */
+    /* ===== View 전환 ===== */
     .view{position:fixed;inset:0;overflow:auto;background:var(--kb-card);transition:transform .35s ease}
     #home{transform:translateX(0)}
     #tx{transform:translateX(100%)}
@@ -60,29 +61,33 @@
     .row .btn{flex:1}
     .chips{display:flex;gap:10px;align-items:center}
     .chip{font-size:12px;color:#475569;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
-
     .tx-list{margin-top:8px}
     .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
 
-    /* 날짜/금액 1열 라인 정렬 + 폰트 통일 */
+    /* 날짜/금액 줄 */
     .tx-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#9ca3af;font-size:12px}
-    .amount{min-width:140px;text-align:right;display:flex;flex-direction:column;align-items:flex-end}
+
+    /* 거래명과 금액 한 줄로 정렬 */
+    .tx-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+    .tx-name{font-weight:700;word-break:keep-all}
     .tx-amt{
-      font-size:18px;font-weight:800;
-      font-family: inherit;                 /* ← 잔액과 동일 폰트 */
-      font-variant-numeric: tabular-nums;   /* ← 숫자 폭 고정으로 세로 라인 정렬 */
-      line-height:1.2;
+      font-size:17px;
+      font-weight:800;
+      font-family:inherit;
+      font-variant-numeric:tabular-nums;
+      line-height:1.4;
+      text-align:right;
     }
     .deposit{color:#2563eb}
     .withdraw{color:#d32f2f}
-    .tx-name{font-weight:700}
+
+    /* 잔액 */
     .tx-bal{
-      color:#94a3b8;font-size:12px;margin-top:2px;text-align:right;
-      font-family: inherit;                 /* 기준 폰트 */
-      font-variant-numeric: tabular-nums;
+      color:#94a3b8;font-size:12px;text-align:right;
+      font-family:inherit;font-variant-numeric:tabular-nums;
     }
 
-    /* ===== 바텀시트 (필터) ===== */
+    /* ===== 바텀시트 ===== */
     .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s}
     .mask.show{opacity:1;pointer-events:auto}
     .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:20px;border-top-right-radius:20px;box-shadow:0 -10px 30px rgba(0,0,0,.2);transition:bottom .25s ease;z-index:30}
@@ -107,7 +112,6 @@
 
       <h3 class="section-title">Kbank</h3>
       <div class="card">
-        <!-- 계좌 영역 클릭 → 거래내역 화면으로 이동 -->
         <div id="acctArea" aria-label="계좌 상세 보기">
           <div class="acc-label" style="color:#64748b;margin-bottom:6px">MY 입출금통장 100-116-054706</div>
           <div class="balance">10,300원</div>
@@ -156,7 +160,7 @@
     <div id="txList" class="tx-list"></div>
   </section>
 
-  <!-- ===== Mask + Filter Sheet ===== -->
+  <!-- ===== Mask + Sheet ===== -->
   <div id="mask" class="mask"></div>
   <div id="sheet" class="sheet" role="dialog" aria-modal="true">
     <div class="sheet-head">조회 조건</div>
@@ -208,49 +212,41 @@
       {date:'2025-10-24',time:'14:00',name:'CD현금지급',type:'withdraw',amount:100000,balance:10300},
       {date:'2025-10-24',time:'07:47',name:'이희진',type:'deposit',amount:100000,balance:110300},
       {date:'2025-10-20',time:'09:12',name:'지에스25 가야대학교',type:'withdraw',amount:100000,balance:10300},
-      {date:'2025-10-20',time:'08:37',name:'이희진',type:'deposit',amount:100000,balance:110300},
-      {date:'2025-10-06',time:'10:27',name:'이희진',type:'deposit',amount:300000,balance:310300},
-      {date:'2025-10-06',time:'10:35',name:'CD현금지급',type:'withdraw',amount:300000,balance:10300}
+      {date:'2025-10-20',time:'08:37',name:'이희진',type:'deposit',amount:100000,balance:110300}
     ];
 
-    /* ===== 필터 상태 ===== */
     let state={period:'3m',type:'all',sort:'latest',min:null,max:null};
     const txList=document.getElementById('txList');
-
     function fmtKR(n){return Number(n).toLocaleString('ko-KR');}
     function withinPeriod(d,p){
-      const end=new Date('2025-11-08T23:59:59'); // 오늘 기준
-      const start=new Date(end);
+      const end=new Date('2025-11-08T23:59:59');const start=new Date(end);
       if(p==='1m')start.setMonth(end.getMonth()-1);
       if(p==='3m')start.setMonth(end.getMonth()-3);
       if(p==='6m')start.setMonth(end.getMonth()-6);
       if(p==='1y')start.setFullYear(end.getFullYear()-1);
       const dt=new Date(d.date+'T'+d.time);
-      return dt>=start && dt<=end;
+      return dt>=start&&dt<=end;
     }
 
     function render(){
       let items=data.filter(d=>withinPeriod(d,state.period));
-      if(state.type!=='all') items=items.filter(d=>d.type===state.type);
-      if(state.min) items=items.filter(d=>Math.abs(d.amount)>=Number(state.min));
-      if(state.max) items=items.filter(d=>Math.abs(d.amount)<=Number(state.max));
+      if(state.type!=='all')items=items.filter(d=>d.type===state.type);
+      if(state.min)items=items.filter(d=>Math.abs(d.amount)>=Number(state.min));
+      if(state.max)items=items.filter(d=>Math.abs(d.amount)<=Number(state.max));
+      items.sort((a,b)=>state.sort==='latest'
+        ?new Date(b.date+'T'+b.time)-new Date(a.date+'T'+a.time)
+        :new Date(a.date+'T'+a.time)-new Date(b.date+'T'+a.time));
 
-      items.sort((a,b)=> state.sort==='latest'
-        ? new Date(b.date+'T'+b.time)-new Date(a.date+'T'+a.time)
-        : new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
-
-      txList.innerHTML = items.map(d=>{
-        const cls = d.type==='deposit' ? 'deposit' : 'withdraw';
-        const sign = d.type==='deposit' ? '+' : '-';
+      txList.innerHTML=items.map(d=>{
+        const cls=d.type==='deposit'?'deposit':'withdraw';
+        const sign=d.type==='deposit'?'+':'-';
         return `
           <div class="tx-item">
-            <div class="tx-top">
-              <div>${d.date} | ${d.time}</div>
-              <div class="amount">
-                <div class="tx-amt ${cls}">${sign}${fmtKR(d.amount)}원</div>
-              </div>
+            <div class="tx-top">${d.date} | ${d.time}</div>
+            <div class="tx-row">
+              <div class="tx-name">${d.name}</div>
+              <div class="tx-amt ${cls}">${sign}${fmtKR(d.amount)}원</div>
             </div>
-            <div class="tx-name">${d.name}</div>
             <div class="tx-bal">잔액 ${fmtKR(d.balance)} 원</div>
           </div>
         `;
@@ -258,30 +254,25 @@
     }
     render();
 
-    /* ===== 바텀시트 동작 ===== */
+    /* ===== 바텀시트 ===== */
     const mask=document.getElementById('mask');
     const sheet=document.getElementById('sheet');
     const openFilter=document.getElementById('openFilter');
     const applyBtn=document.getElementById('applyFilter');
-
-    function openSheet(){ mask.classList.add('show'); sheet.classList.add('show'); }
-    function closeSheet(){ mask.classList.remove('show'); sheet.classList.remove('show'); }
-    openFilter.addEventListener('click', openSheet);
-    mask.addEventListener('click', closeSheet);
-
+    function openSheet(){mask.classList.add('show');sheet.classList.add('show');}
+    function closeSheet(){mask.classList.remove('show');sheet.classList.remove('show');}
+    openFilter.addEventListener('click',openSheet);
+    mask.addEventListener('click',closeSheet);
     function selectSingle(id,key){
       const box=document.getElementById(id);
       box.addEventListener('click',e=>{
-        const btn=e.target.closest('.opt'); if(!btn) return;
+        const btn=e.target.closest('.opt');if(!btn)return;
         Array.from(box.querySelectorAll('.opt')).forEach(b=>b.classList.remove('selected'));
         btn.classList.add('selected');
         state[key]=btn.dataset[key];
       });
     }
-    selectSingle('periodBtns','period');
-    selectSingle('typeBtns','type');
-    selectSingle('sortBtns','sort');
-
+    selectSingle('periodBtns','period');selectSingle('typeBtns','type');selectSingle('sortBtns','sort');
     applyBtn.addEventListener('click',()=>{
       state.min=document.getElementById('minAmt').value.trim();
       state.max=document.getElementById('maxAmt').value.trim();
@@ -289,7 +280,7 @@
       const t={'all':'전체','withdraw':'출금만','deposit':'입금만'};
       const s={'latest':'최신순','oldest':'과거순'};
       document.getElementById('openFilter').textContent=`${p[state.period]}·${t[state.type]}·${s[state.sort]} ⌄`;
-      render(); closeSheet();
+      render();closeSheet();
     });
   </script>
 </body>
