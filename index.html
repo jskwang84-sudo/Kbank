@@ -5,38 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <title>Kbank – 데모</title>
   <meta name="theme-color" content="#0c3bd9" />
-  <link rel="manifest" href="manifest.json">
+  <!-- manifest 경로를 런타임에 안전하게 세팅할 것이므로 일단 빈 링크를 둡니다 -->
+  <link id="manifestLink" rel="manifest" href="">
   <style>
-    :root{
-      --kb-blue:#0c3bd9;
-      --kb-card:#ffffff;
-      --kb-text:#0f172a;
-    }
+    :root{ --kb-blue:#0c3bd9; --kb-card:#ffffff; --kb-text:#0f172a; }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{
-      margin:0;height:100%;
-      color:var(--kb-text);background:#f6f7fb;
+    html,body{ margin:0;height:100%; color:var(--kb-text);background:#f6f7fb;
       font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      font-variant-numeric:tabular-nums;
-      font-feature-settings:"tnum" 1;
-      font-synthesis:none;
-      -webkit-text-size-adjust:100%;
-      text-rendering:optimizeLegibility;
-    }
-
-    /* ===== View 전환 ===== */
+      font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; font-synthesis:none; -webkit-text-size-adjust:100%; text-rendering:optimizeLegibility;}
     .view{position:fixed;inset:0;overflow:auto;background:var(--kb-card);transition:transform .35s ease}
-    #home{transform:translateX(0)}
-    #tx{transform:translateX(100%)}
-    #tx.active{transform:translateX(0)}
-    #home.hidden{transform:translateX(-100%)}
-
-    /* ===== 상단바 ===== */
+    #home{transform:translateX(0)} #tx{transform:translateX(100%)} #tx.active{transform:translateX(0)} #home.hidden{transform:translateX(-100%)}
     .appbar{position:sticky;top:0;z-index:10;background:var(--kb-card);display:flex;align-items:center;justify-content:center;height:56px;border-bottom:1px solid #edf0f4}
     .appbar .back{position:absolute;left:8px;background:none;border:0;font-size:22px;height:56px;width:48px}
     .appbar h1{font-size:18px;margin:0}
-
-    /* ===== 홈 ===== */
     .wrap{padding:14px 14px 92px}
     .banner{background:#e9f0ff;border:1px solid #dbe6ff;color:#1e3a8a;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px}
     .section-title{font-weight:800;margin:16px 4px 8px}
@@ -47,82 +28,27 @@
     .balance{font-size:30px;font-weight:900;letter-spacing:-.5px}
     .btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
     .btn{height:48px;border-radius:12px;border:0;font-weight:800}
-    .btn.gray{background:#eef1f7;color:#111}
-    .btn.blue{background:var(--kb-blue);color:#fff}
+    .btn.gray{background:#eef1f7;color:#111} .btn.blue{background:var(--kb-blue);color:#fff}
     .quick{display:flex;gap:18px;justify-content:space-between;margin-top:14px}
     .qitem{display:flex;flex-direction:column;align-items:center;gap:8px;color:#374151;font-size:12px}
     .qicon{width:48px;height:48px;border-radius:12px;background:#f0f3fb;display:flex;align-items:center;justify-content:center;font-size:20px}
     .tabs{position:fixed;left:0;right:0;bottom:0;background:var(--kb-card);border-top:1px solid #edf0f4;display:flex;justify-content:space-around;padding:8px 6px env(safe-area-inset-bottom)}
-    .tab{display:flex;flex-direction:column;align-items:center;font-size:11px;color:#6b7280;gap:4px}
-    .tab.active{color:var(--kb-blue)}
-
-    /* ===== 거래내역 ===== */
+    .tab{display:flex;flex-direction:column;align-items:center;font-size:11px;color:#6b7280;gap:4px} .tab.active{color:var(--kb-blue)}
     .header-box{padding:12px 16px 8px;border-bottom:1px solid #edf0f4}
-    .acc-title{font-size:22px;font-weight:900;margin:6px 0 2px}
-    .acc-num{font-size:14px;color:#64748b}
-    .row{display:flex;align-items:center;gap:12px;margin:14px 0 6px}
-    .row .btn{flex:1}
+    .acc-title{font-size:22px;font-weight:900;margin:6px 0 2px} .acc-num{font-size:14px;color:#64748b}
+    .row{display:flex;align-items:center;gap:12px;margin:14px 0 6px} .row .btn{flex:1}
     .chips{display:flex;gap:10px;align-items:center}
     .chip{font-size:12px;color:#475569;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
-
-    .tx-list{margin-top:8px}
-    .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
-
+    .tx-list{margin-top:8px} .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
     .tx-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#9ca3af;font-size:12px}
-
-    .tx-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:baseline;
-      margin-bottom:4px;
-      gap:12px
-    }
+    .tx-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;gap:12px}
     .tx-name{font-weight:700;word-break:keep-all;line-height:1.4}
-
-    .tx-amt{
-      font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
-      font-synthesis:none;
-      font-size:17px;
-      font-weight:500;
-      line-height:1.4;
-      text-align:right;
-      letter-spacing:0;
-    }
-    .deposit{color:#2563eb}
-    .withdraw{color:#d32f2f}
-
-    .tx-bal{
-      font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1;
-      font-synthesis:none;
-      color:#94a3b8;font-size:12px;text-align:right;
-    }
-
-    /* ===== 선택 버튼 스타일 ===== */
-    .opt{
-      padding:12px;
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      background:#fff;
-      text-align:center;
-      cursor:pointer;
-      transition:border-color .15s, box-shadow .15s, color .15s;
-    }
-    .opt.selected{
-      border-color:var(--kb-blue);
-      box-shadow:0 0 0 3px rgba(12,59,217,.12);
-      color:var(--kb-blue);
-      font-weight:800;
-    }
-
-    /* ===== 설치 버튼 ===== */
-    #installBtn{
-      position:fixed;right:16px;bottom:86px;z-index:50;
-      height:44px;padding:0 14px;border-radius:12px;border:0;
-      background:var(--kb-blue);color:#fff;font-weight:900;display:none;
-      box-shadow:0 8px 20px rgba(12,59,217,.25);
-    }
+    .tx-amt{font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-synthesis:none;font-size:17px;font-weight:500;line-height:1.4;text-align:right;letter-spacing:0}
+    .deposit{color:#2563eb} .withdraw{color:#d32f2f}
+    .tx-bal{font-family:'Noto Sans KR','Apple SD Gothic Neo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-synthesis:none;color:#94a3b8;font-size:12px;text-align:right}
+    .opt{padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;text-align:center;cursor:pointer;transition:border-color .15s,box-shadow .15s,color .15s}
+    .opt.selected{border-color:var(--kb-blue);box-shadow:0 0 0 3px rgba(12,59,217,.12);color:var(--kb-blue);font-weight:800}
+    #installBtn{position:fixed;right:16px;bottom:86px;z-index:50;height:44px;padding:0 14px;border-radius:12px;border:0;background:var(--kb-blue);color:#fff;font-weight:900;display:none;box-shadow:0 8px 20px rgba(12,59,217,.25)}
   </style>
 </head>
 <body>
@@ -130,7 +56,6 @@
   <section id="home" class="view">
     <div class="wrap">
       <div class="banner">한국투자증권 · 지금 국내 우량주 2주 뿌리는 중!</div>
-
       <h3 class="section-title">Kbank</h3>
       <div class="card">
         <div id="acctArea" aria-label="계좌 상세 보기">
@@ -149,35 +74,20 @@
         </div>
       </div>
     </div>
-
     <nav class="tabs">
-      <div class="tab active">홈</div>
-      <div class="tab">발견</div>
-      <div class="tab">혜택</div>
-      <div class="tab">투자</div>
-      <div class="tab">전체</div>
+      <div class="tab active">홈</div><div class="tab">발견</div><div class="tab">혜택</div><div class="tab">투자</div><div class="tab">전체</div>
     </nav>
   </section>
 
   <!-- ===== TX ===== -->
   <section id="tx" class="view">
-    <div class="appbar">
-      <button class="back" onclick="goHome()">‹</button>
-      <h1>입출금통장</h1>
-    </div>
-
+    <div class="appbar"><button class="back" onclick="goHome()">‹</button><h1>입출금통장</h1></div>
     <div class="header-box">
       <div class="acc-title">MY 입출금통장</div>
       <div class="acc-num">100-116-054706</div>
-      <div class="row">
-        <button class="btn gray">가져오기</button>
-        <button class="btn blue">이체하기</button>
-      </div>
-      <div class="chips">
-        <button id="openFilter" class="chip">3개월·전체·최신순 ⌄</button>
-      </div>
+      <div class="row"><button class="btn gray">가져오기</button><button class="btn blue">이체하기</button></div>
+      <div class="chips"><button id="openFilter" class="chip">3개월·전체·최신순 ⌄</button></div>
     </div>
-
     <div id="txList" class="tx-list"></div>
   </section>
 
@@ -196,43 +106,35 @@
         <button class="opt" data-period="6m">6개월</button>
         <button class="opt" data-period="1y">1년</button>
       </div>
-
       <div style="font-weight:800;margin:16px 0 8px">유형</div>
       <div class="grid-3" id="typeBtns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
         <button class="opt selected" data-type="all">전체</button>
         <button class="opt" data-type="withdraw">출금만</button>
         <button class="opt" data-type="deposit">입금만</button>
       </div>
-
       <div style="font-weight:800;margin:16px 0 8px">순서</div>
       <div class="grid-2" id="sortBtns" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
         <button class="opt selected" data-sort="latest">최신순</button>
         <button class="opt" data-sort="oldest">과거순</button>
       </div>
-
       <div style="font-weight:800;margin:16px 0 8px">금액</div>
       <div class="range" style="display:flex;gap:10px">
         <input id="minAmt" placeholder="최소" inputmode="numeric" style="flex:1;height:44px;border:1px solid #e5e7eb;border-radius:12px;padding:0 12px">
         <input id="maxAmt" placeholder="최대" inputmode="numeric" style="flex:1;height:44px;border:1px solid #e5e7eb;border-radius:12px;padding:0 12px">
       </div>
-
       <button id="applyFilter" class="confirm" style="margin-top:10px;width:100%;height:52px;border:0;border-radius:14px;background:#0c3bd9;color:#fff;font-weight:900">확인</button>
     </div>
   </div>
 
   <script>
     /* ===== 화면 전환 ===== */
-    const home=document.getElementById('home');
-    const tx=document.getElementById('tx');
-    const acctArea=document.getElementById('acctArea');
-    const transferBtn=document.getElementById('btnTransfer');
-
+    const home=document.getElementById('home'), tx=document.getElementById('tx'), acctArea=document.getElementById('acctArea'), transferBtn=document.getElementById('btnTransfer');
     acctArea.addEventListener('click',()=>{ home.classList.add('hidden'); tx.classList.add('active'); });
     function goHome(){ tx.classList.remove('active'); home.classList.remove('hidden'); }
     transferBtn.addEventListener('click',()=>alert('데모: 이체 기능은 준비 중입니다.'));
 
     /* ===== 거래 데이터 ===== */
-    const data = [
+    const data=[ /* (교수님 최신 배열 그대로) */ 
       {date:'2025-10-24', time:'14:00', name:'CD현금지급', type:'withdraw', amount:100000, balance:20300},
       {date:'2025-10-24', time:'07:47', name:'이희진', type:'deposit', amount:100000, balance:120300},
       {date:'2025-10-20', time:'09:12', name:'지에스25 가야대학교', type:'withdraw', amount:100000, balance:20300},
@@ -273,100 +175,94 @@
       {date:'2025-02-05', time:'21:32', name:'이희진', type:'deposit', amount:32000, balance:32000},
       {date:'2025-02-05', time:'21:34', name:'OPENAI*CHATGPT', type:'withdraw', amount:32000, balance:0}
     ];
-
-    /* ===== 필터 상태/렌더 ===== */
     let state={period:'3m',type:'all',sort:'latest',min:null,max:null};
     const txList=document.getElementById('txList');
-    function fmtKR(n){return Number(n).toLocaleString('ko-KR');}
-    function withinPeriod(d,p){
-      const end=new Date('2025-11-08T23:59:59');const start=new Date(end);
-      if(p==='1m')start.setMonth(end.getMonth()-1);
-      if(p==='3m')start.setMonth(end.getMonth()-3);
-      if(p==='6m')start.setMonth(end.getMonth()-6);
-      if(p==='1y')start.setFullYear(end.getFullYear()-1);
-      const dt=new Date(d.date+'T'+d.time);
-      return dt>=start&&dt<=end;
-    }
+    const fmtKR=n=>Number(n).toLocaleString('ko-KR');
+    function withinPeriod(d,p){ const end=new Date('2025-11-08T23:59:59'); const start=new Date(end);
+      if(p==='1m')start.setMonth(end.getMonth()-1); if(p==='3m')start.setMonth(end.getMonth()-3);
+      if(p==='6m')start.setMonth(end.getMonth()-6); if(p==='1y')start.setFullYear(end.getFullYear()-1);
+      const dt=new Date(d.date+'T'+d.time); return dt>=start&&dt<=end; }
     function render(){
       let items=data.filter(d=>withinPeriod(d,state.period));
       if(state.type!=='all')items=items.filter(d=>d.type===state.type);
       if(state.min)items=items.filter(d=>Math.abs(d.amount)>=Number(state.min));
       if(state.max)items=items.filter(d=>Math.abs(d.amount)<=Number(state.max));
-      items.sort((a,b)=>state.sort==='latest'
-        ?new Date(b.date+'T'+b.time)-new Date(a.date+'T'+a.time)
-        :new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
-
+      items.sort((a,b)=> state.sort==='latest'
+        ? new Date(b.date+'T'+b.time)-new Date(a.date+'T'+a.time)
+        : new Date(a.date+'T'+a.time)-new Date(b.date+'T'+b.time));
       txList.innerHTML=items.map(d=>{
         const cls=d.type==='deposit'?'deposit':'withdraw';
         const sign=d.type==='deposit'?'+':'-';
-        return `
-          <div class="tx-item">
-            <div class="tx-top">${d.date} | ${d.time}</div>
-            <div class="tx-row">
-              <div class="tx-name">${d.name}</div>
-              <div class="tx-amt ${cls}">${sign}${fmtKR(d.amount)}원</div>
-            </div>
-            <div class="tx-bal">잔액 ${fmtKR(d.balance)} 원</div>
-          </div>
-        `;
+        return `<div class="tx-item">
+          <div class="tx-top">${d.date} | ${d.time}</div>
+          <div class="tx-row"><div class="tx-name">${d.name}</div><div class="tx-amt ${cls}">${sign}${fmtKR(d.amount)}원</div></div>
+          <div class="tx-bal">잔액 ${fmtKR(d.balance)} 원</div></div>`;
       }).join('');
     }
     render();
 
-    /* ===== 바텀시트 ===== */
-    const mask=document.getElementById('mask');
-    const sheet=document.getElementById('sheet');
-    const openFilter=document.getElementById('openFilter');
-    const applyBtn=document.getElementById('applyFilter');
+    const mask=document.getElementById('mask'), sheet=document.getElementById('sheet'),
+          openFilter=document.getElementById('openFilter'), applyBtn=document.getElementById('applyFilter');
     function openSheet(){mask.style.opacity=1;mask.style.pointerEvents='auto';sheet.style.bottom=0;}
     function closeSheet(){mask.style.opacity=0;mask.style.pointerEvents='none';sheet.style.bottom='-100%';}
     openFilter.addEventListener('click',openSheet); mask.addEventListener('click',closeSheet);
     function selectSingle(id,key){
       const box=document.getElementById(id);
       box.addEventListener('click',e=>{
-        const btn=e.target.closest('.opt');if(!btn)return;
+        const btn=e.target.closest('.opt'); if(!btn)return;
         Array.from(box.querySelectorAll('.opt')).forEach(b=>b.classList.remove('selected'));
         btn.classList.add('selected'); state[key]=btn.dataset[key];
       });
     }
-    selectSingle('periodBtns','period');selectSingle('typeBtns','type');selectSingle('sortBtns','sort');
+    selectSingle('periodBtns','period'); selectSingle('typeBtns','type'); selectSingle('sortBtns','sort');
     applyBtn.addEventListener('click',()=>{
       state.min=document.getElementById('minAmt').value.trim();
       state.max=document.getElementById('maxAmt').value.trim();
-      const p={'1m':'1개월','3m':'3개월','6m':'6개월','1y':'1년'};
-      const t={'all':'전체','withdraw':'출금만','deposit':'입금만'};
-      const s={'latest':'최신순','oldest':'과거순'};
+      const p={'1m':'1개월','3m':'3개월','6m':'6개월','1y':'1년'},
+            t={'all':'전체','withdraw':'출금만','deposit':'입금만'},
+            s={'latest':'최신순','oldest':'과거순'};
       document.getElementById('openFilter').textContent=`${p[state.period]}·${t[state.type]}·${s[state.sort]} ⌄`;
       render(); closeSheet();
     });
 
-    /* ===== PWA: SW 등록 + 설치 핸들러 ===== */
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').catch(console.error);
+    /* ===== PWA: 경로 자동 인식 + SW 등록 + 설치 핸들러 ===== */
+    (function setupPWA(){
+      const path = location.pathname;               // /, /Kbank/, /Kbank/index.html ...
+      const base = path.endsWith('/') ? path : path.substring(0, path.lastIndexOf('/')+1);
+      // manifest 경로 안전 세팅
+      const mf = document.getElementById('manifestLink');
+      mf.setAttribute('href', base + 'manifest.json');
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try{
+            const reg = await navigator.serviceWorker.register(base + 'service-worker.js', { scope: base });
+            await navigator.serviceWorker.ready; // 컨트롤된 뒤 설치 버튼 노출
+          }catch(e){ console.error('SW register fail', e); }
+        });
+      }
+
+      let deferredPrompt=null;
+      const installBtn=document.getElementById('installBtn');
+
+      window.addEventListener('beforeinstallprompt',(e)=>{
+        e.preventDefault();
+        deferredPrompt=e;
+        installBtn.style.display='block';
       });
-    }
-    let deferredPrompt=null;
-    const installBtn=document.getElementById('installBtn');
 
-    window.addEventListener('beforeinstallprompt',(e)=>{
-      e.preventDefault();           // 크롬의 자동 배너 막고
-      deferredPrompt=e;             // 저장
-      installBtn.style.display='block';   // 버튼 표시
-    });
+      installBtn.addEventListener('click', async ()=>{
+        if(!deferredPrompt) return;
+        installBtn.disabled=true;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt=null;
+        installBtn.style.display='none';
+        installBtn.disabled=false;
+      });
 
-    installBtn.addEventListener('click', async ()=>{
-      if(!deferredPrompt) return;
-      installBtn.disabled=true;
-      deferredPrompt.prompt();                 // 설치 다이얼로그
-      const { outcome } = await deferredPrompt.userChoice;
-      // outcome: 'accepted' | 'dismissed'
-      deferredPrompt=null;
-      setTimeout(()=>{ installBtn.style.display='none'; installBtn.disabled=false;}, 300);
-    });
-
-    // 이미 설치된 상태에서는 버튼 숨김
-    window.addEventListener('appinstalled', ()=>{ installBtn.style.display='none'; });
+      window.addEventListener('appinstalled', ()=>{ installBtn.style.display='none'; });
+    })();
   </script>
 </body>
 </html>
