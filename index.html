@@ -54,15 +54,27 @@
     .row .btn{flex:1}
     .chips{display:flex;gap:10px;align-items:center}
     .chip{font-size:12px;color:#475569;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
-    .filterline{font-size:13px;color:#6b7280;margin:8px 0 0 16px}
     .tx-list{margin-top:8px}
     .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
-    .tx-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#9ca3af;font-size:12px}
+    /* ✅ 수정된 부분 시작 */
+    .tx-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start; /* 정렬 수정 */
+      margin-bottom:6px;
+      color:#9ca3af;
+      font-size:12px;
+    }
     .tx-name{font-weight:700}
-    .tx-amt{font-size:18px;font-weight:900}
+    .tx-amt{
+      font-size:17px; /* 잔액과 어울리는 크기 */
+      font-weight:900;
+      font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif; /* 잔액과 동일 폰트 */
+    }
     .deposit{color:#2563eb}
     .withdraw{color:#d32f2f}
     .tx-bal{color:#94a3b8;font-size:12px;margin-top:2px;text-align:right}
+    /* ✅ 수정된 부분 끝 */
     /* Filter sheet */
     .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s}
     .mask.show{opacity:1;pointer-events:auto}
@@ -88,7 +100,6 @@
 
       <h3 class="section-title">Kbank</h3>
       <div class="card">
-        <!-- Clicking this goes to Tx screen -->
         <div id="acctArea" aria-label="계좌 상세 보기">
           <div class="acc-label" style="color:#64748b;margin-bottom:6px">MY 입출금통장 100-116-054706</div>
           <div class="balance">10,300원</div>
@@ -174,134 +185,75 @@
   </div>
 
   <script>
-    // Views
-    const home = document.getElementById('home');
-    const tx = document.getElementById('tx');
-    const acctArea = document.getElementById('acctArea');
-    const transferBtn = document.getElementById('btnTransfer');
-
-    function openTx(){ home.classList.add('hiddenLeft'); tx.classList.add('active'); }
-    function goHome(){ tx.classList.remove('active'); home.classList.remove('hiddenLeft'); }
-
-    acctArea.addEventListener('click', openTx);
-    transferBtn.addEventListener('click', ()=> alert('데모: 이체 기능은 준비 중입니다.'));
-
-    // Fake data
-    const data = [
-      {date:'2025-10-24', time:'14:00', name:'CD현금지급', type:'withdraw', amount:100000, balance:10300},
-      {date:'2025-10-24', time:'07:47', name:'이희진', type:'deposit', amount:100000, balance:110300},
-      {date:'2025-10-20', time:'08:37', name:'이희진', type:'deposit', amount:100000, balance:110300},
-      {date:'2025-10-20', time:'09:12', name:'지에스25 가야대학교', type:'withdraw', amount:100000, balance:10300},
-      {date:'2025-10-06', time:'10:27', name:'이희진', type:'deposit', amount:300000, balance:310300},
-      {date:'2025-10-06', time:'10:35', name:'CD현금지급', type:'withdraw', amount:300000, balance:10300},
-      {date:'2025-09-27', time:'05:51', name:'이자', type:'deposit', amount:0, balance:10300},
-      {date:'2025-09-23', time:'08:42', name:'이희진', type:'deposit', amount:100000, balance:110300},
-      {date:'2025-09-23', time:'11:32', name:'CD현금지급', type:'withdraw', amount:100000, balance:10300},
-      {date:'2025-09-14', time:'11:32', name:'지에스25 가야대학교', type:'withdraw', amount:50000, balance:10300},
-      {date:'2025-09-14', time:'09:50', name:'이희진', type:'deposit', amount:50000, balance:60300},
-      {date:'2025-08-20', time:'08:39', name:'이희진', type:'deposit', amount:100000, balance:110300},
-      {date:'2025-08-20', time:'10:53', name:'CD현금지급', type:'withdraw', amount:100000, balance:10300},
-      {date:'2025-08-13', time:'08:39', name:'이희진', type:'deposit', amount:300000, balance:310300},
-      {date:'2025-08-13', time:'14:31', name:'임상운동재활학회', type:'withdraw', amount:300000, balance:10300},
-      {date:'2025-07-30', time:'08:39', name:'이희진', type:'deposit', amount:50000, balance:60300},
-      {date:'2025-07-30', time:'11:53', name:'지에스25 가야대학교', type:'withdraw', amount:50000, balance:10300},
-      {date:'2025-07-28', time:'08:03', name:'이희진', type:'deposit', amount:160000, balance:170300},
-      {date:'2025-07-28', time:'13:21', name:'조성학', type:'withdraw', amount:100000, balance:70300},
-      {date:'2025-07-28', time:'13:23', name:'박기준', type:'withdraw', amount:50000, balance:20300},
-      {date:'2025-07-29', time:'09:48', name:'지에스25 가야대학교', type:'withdraw', amount:10000, balance:10300},
-      {date:'2025-07-26', time:'12:46', name:'지에스25 작천달빛점', type:'withdraw', amount:9700, balance:20300},
-      {date:'2025-07-26', time:'12:32', name:'이희진', type:'deposit', amount:20000, balance:30000},
-      {date:'2025-07-11', time:'16:05', name:'이희진', type:'deposit', amount:300000, balance:310000},
-      {date:'2025-07-11', time:'17:15', name:'정두순', type:'withdraw', amount:300000, balance:10000},
-      {date:'2025-06-03', time:'11:00', name:'이희진', type:'deposit', amount:250000, balance:260000},
-      {date:'2025-06-04', time:'12:05', name:'조성학', type:'withdraw', amount:100000, balance:160000},
-      {date:'2025-06-04', time:'12:11', name:'최영은', type:'withdraw', amount:100000, balance:60000},
-      {date:'2025-06-06', time:'10:24', name:'씨유(CU) 명장새싹점', type:'withdraw', amount:50000, balance:10000},
-      {date:'2025-06-01', time:'12:01', name:'이희진', type:'deposit', amount:10000, balance:30000},
-      {date:'2025-06-01', time:'11:43', name:'이희진', type:'deposit', amount:20000, balance:20000},
-      {date:'2025-06-01', time:'12:04', name:'류종호', type:'withdraw', amount:10000, balance:20000},
-      {date:'2025-06-01', time:'12:17', name:'서영주(착한어무가게', type:'withdraw', amount:10000, balance:10000},
-      {date:'2025-05-13', time:'08:34', name:'이희진', type:'deposit', amount:50000, balance:50000},
-      {date:'2025-05-13', time:'09:08', name:'지에스25 가야대학교', type:'withdraw', amount:50000, balance:0},
-      {date:'2025-02-19', time:'16:00', name:'이희진', type:'deposit', amount:100000, balance:100000},
-      {date:'2025-02-19', time:'16:22', name:'CD현금지급', type:'withdraw', amount:100000, balance:0},
-      {date:'2025-02-05', time:'21:32', name:'이희진', type:'deposit', amount:32000, balance:32000},
-      {date:'2025-02-05', time:'21:34', name:'OPENAI*CHATGPT', type:'withdraw', amount:32000, balance:0},
+    const home=document.getElementById('home');
+    const tx=document.getElementById('tx');
+    const acctArea=document.getElementById('acctArea');
+    const transferBtn=document.getElementById('btnTransfer');
+    function openTx(){home.classList.add('hiddenLeft');tx.classList.add('active');}
+    function goHome(){tx.classList.remove('active');home.classList.remove('hiddenLeft');}
+    acctArea.addEventListener('click',openTx);
+    transferBtn.addEventListener('click',()=>alert('데모: 이체 기능은 준비 중입니다.'));
+    const data=[
+      {date:'2025-10-24',time:'14:00',name:'CD현금지급',type:'withdraw',amount:100000,balance:10300},
+      {date:'2025-10-24',time:'07:47',name:'이희진',type:'deposit',amount:100000,balance:110300},
+      {date:'2025-10-20',time:'08:37',name:'이희진',type:'deposit',amount:100000,balance:110300},
+      {date:'2025-10-20',time:'09:12',name:'지에스25 가야대학교',type:'withdraw',amount:100000,balance:10300},
+      {date:'2025-10-06',time:'10:27',name:'이희진',type:'deposit',amount:300000,balance:310300},
+      {date:'2025-10-06',time:'10:35',name:'CD현금지급',type:'withdraw',amount:300000,balance:10300},
     ];
-
-    // Filter state
-    let state = { period:'3m', type:'all', sort:'latest', min:null, max:null };
-
-    const txList = document.getElementById('txList');
-    function fmtKR(n){ return Number(n).toLocaleString('ko-KR'); }
-    function withinPeriod(d, period){
-      const end = new Date('2025-11-08T23:59:59'); // 오늘 기준
-      const start = new Date(end);
-      if(period==='1m') start.setMonth(end.getMonth()-1);
-      if(period==='3m') start.setMonth(end.getMonth()-3);
-      if(period==='6m') start.setMonth(end.getMonth()-6);
-      if(period==='1y') start.setFullYear(end.getFullYear()-1);
-      const dt = new Date(d.date + 'T' + (d.time||'00:00'));
-      return dt >= start && dt <= end;
+    let state={period:'3m',type:'all',sort:'latest',min:null,max:null};
+    const txList=document.getElementById('txList');
+    function fmtKR(n){return Number(n).toLocaleString('ko-KR');}
+    function withinPeriod(d,period){
+      const end=new Date('2025-11-08T23:59:59');
+      const start=new Date(end);
+      if(period==='1m')start.setMonth(end.getMonth()-1);
+      if(period==='3m')start.setMonth(end.getMonth()-3);
+      if(period==='6m')start.setMonth(end.getMonth()-6);
+      if(period==='1y')start.setFullYear(end.getFullYear()-1);
+      const dt=new Date(d.date+'T'+(d.time||'00:00'));
+      return dt>=start&&dt<=end;
     }
     function render(){
-      let items = data.filter(d => withinPeriod(d, state.period));
-
-      if(state.type!=='all') items = items.filter(d => d.type===state.type);
-      if(state.min) items = items.filter(d => Math.abs(d.amount) >= Number(state.min));
-      if(state.max) items = items.filter(d => Math.abs(d.amount) <= Number(state.max));
-
-      items.sort((a,b)=> state.sort==='latest'
-        ? new Date(b.date+'T'+b.time) - new Date(a.date+'T'+a.time)
-        : new Date(a.date+'T'+a.time) - new Date(b.date+'T'+b.time));
-
-      txList.innerHTML = items.map(d=>{
-        const cls = d.type==='deposit' ? 'deposit' : 'withdraw';
-        const sign = d.type==='deposit' ? '+' : '-';
+      let items=data.filter(d=>withinPeriod(d,state.period));
+      if(state.type!=='all')items=items.filter(d=>d.type===state.type);
+      if(state.min)items=items.filter(d=>Math.abs(d.amount)>=Number(state.min));
+      if(state.max)items=items.filter(d=>Math.abs(d.amount)<=Number(state.max));
+      items.sort((a,b)=>state.sort==='latest'?new Date(b.date+'T'+b.time)-new Date(a.date+'T'+a.time):new Date(a.date+'T'+a.time)-new Date(b.date+'T'+a.time));
+      txList.innerHTML=items.map(d=>{
+        const cls=d.type==='deposit'?'deposit':'withdraw';
+        const sign=d.type==='deposit'?'+':'-';
         return `<div class="tx-item">
           <div class="tx-top"><div>${d.date} | ${d.time}</div><div class="tx-amt ${cls}">${sign}${fmtKR(d.amount)}원</div></div>
           <div class="tx-name">${d.name}</div>
           <div class="tx-bal">잔액 ${fmtKR(d.balance)} 원</div>
-        </div>`
+        </div>`;
       }).join('');
     }
     render();
-
-    // Sheet controls
-    const mask = document.getElementById('mask');
-    const sheet = document.getElementById('sheet');
-    const openFilter = document.getElementById('openFilter');
-    const applyBtn = document.getElementById('applyFilter');
-
-    function openSheet(){ mask.classList.add('show'); sheet.classList.add('show'); }
-    function closeSheet(){ mask.classList.remove('show'); sheet.classList.remove('show'); }
-    mask.addEventListener('click', closeSheet);
-    openFilter.addEventListener('click', openSheet);
-
-    function singleSelect(containerId, key){
-      const box = document.getElementById(containerId);
-      box.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.opt'); if(!btn) return;
+    const mask=document.getElementById('mask');
+    const sheet=document.getElementById('sheet');
+    const openFilter=document.getElementById('openFilter');
+    const applyBtn=document.getElementById('applyFilter');
+    function openSheet(){mask.classList.add('show');sheet.classList.add('show');}
+    function closeSheet(){mask.classList.remove('show');sheet.classList.remove('show');}
+    mask.addEventListener('click',closeSheet);
+    openFilter.addEventListener('click',openSheet);
+    function singleSelect(id,key){
+      const box=document.getElementById(id);
+      box.addEventListener('click',e=>{
+        const btn=e.target.closest('.opt');if(!btn)return;
         Array.from(box.querySelectorAll('.opt')).forEach(b=>b.classList.remove('selected'));
         btn.classList.add('selected');
-        state[key] = btn.dataset[key];
+        state[key]=btn.dataset[key];
       });
     }
-    singleSelect('periodBtns', 'period');
-    singleSelect('typeBtns', 'type');
-    singleSelect('sortBtns', 'sort');
-
-    applyBtn.addEventListener('click', ()=>{
-      state.min = document.getElementById('minAmt').value.trim();
-      state.max = document.getElementById('maxAmt').value.trim();
-      // update chip label
-      const periodMap = { '1m':'1개월', '3m':'3개월', '6m':'6개월', '1y':'1년' };
-      const typeMap   = { 'all':'전체', 'withdraw':'출금만', 'deposit':'입금만' };
-      const sortMap   = { 'latest':'최신순', 'oldest':'과거순' };
-      document.getElementById('openFilter').textContent = `${periodMap[state.period]}·${typeMap[state.type]}·${sortMap[state.sort]} ⌄`;
-      render();
-      closeSheet();
-    });
-  </script>
-</body>
-</html>
+    singleSelect('periodBtns','period');
+    singleSelect('typeBtns','type');
+    singleSelect('sortBtns','sort');
+    applyBtn.addEventListener('click',()=>{
+      state.min=document.getElementById('minAmt').value.trim();
+      state.max=document.getElementById('maxAmt').value.trim();
+      const pMap={'1m':'1개월','3m':'3개월','6m':'6개월','1y':'1년'};
+      const tMap={'all':'전체','withdraw':'출금만','deposit':'입금만'};
+      const sMap={'latest':'최신순','oldest':'과거순'};
