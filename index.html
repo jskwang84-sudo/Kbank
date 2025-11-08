@@ -1,148 +1,273 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Kbank</title>
-  <meta name="theme-color" content="#114dff" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Kbank – 데모</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icons/icon-192.png">
   <style>
+    :root{
+      --kb-blue:#0c3bd9;
+      --kb-blue-700:#0b2fb1;
+      --kb-bg:#eef2ff;
+      --kb-card:#ffffff;
+      --kb-gray:#6b7280;
+      --kb-text:#0f172a;
+      --radius:16px;
+    }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{margin:0;padding:0;height:100%;background:#eef3ff;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Apple SD Gothic Neo','Segoe UI',sans-serif;color:#0f1a2a}
-    .view{position:fixed;inset:0;overflow-y:auto;background:#f7f9ff;transform:translateX(100%);transition:transform .3s ease}
-    #homeView{transform:translateX(0)}
+    html,body{margin:0;height:100%;background:#f6f7fb;color:var(--kb-text);font-family: -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif}
+    .view{position:fixed;inset:0;overflow:auto;background:var(--kb-card);transform:translateX(100%);transition:transform .3s ease}
+    #home.view{transform:translateX(0)}
     .view.active{transform:translateX(0)!important}
     .view.hiddenLeft{transform:translateX(-100%)}
-    .top{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 8px;background:linear-gradient(180deg,#dfe7ff,#f7f9ff);position:sticky;top:0;z-index:5}
-    .hello{font-weight:800;font-size:22px}
-    .actions{display:flex;gap:10px}
-    .ib{width:36px;height:36px;border-radius:18px;background:#e6ecff;display:flex;align-items:center;justify-content:center}
-    .card{margin:12px; background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,30,120,.08);padding:16px}
-    .kb-header{font-weight:900;color:#114dff;margin-bottom:8px}
-    .acct-name{font-size:18px;font-weight:800}
-    .acct-num{font-size:13px;color:#6b7a95;margin-top:2px}
-    .balance{font-size:30px;font-weight:900;letter-spacing:.5px;margin:12px 0}
-    .btn-row{display:flex;gap:12px;margin-top:10px}
-    .btn{flex:1;height:44px;border-radius:12px;border:0;font-weight:800}
-    .btn.secondary{background:#eef3ff;color:#114dff}
-    .btn.primary{background:#114dff;color:#fff}
-    .section-title{padding:6px 14px;color:#607195;font-weight:800;margin-top:8px}
-    .list{margin:10px 0 60px}
-    .tx{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px;border-top:1px solid #eff2f9;background:#fff}
-    .tx:first-child{border-top:0;border-top-left-radius:16px;border-top-right-radius:16px}
-    .tx:last-child{border-bottom-left-radius:16px;border-bottom-right-radius:16px;box-shadow:0 2px 8px rgba(0,30,120,.06)}
-    .tx .l .name{font-weight:800}
-    .tx .l .date{font-size:12px;color:#7b8aa8;margin-top:2px}
-    .tx .r{text-align:right}
-    .plus{color:#0b59ff;font-weight:900}
-    .minus{color:#d22c2c;font-weight:900}
-    .r .bal{font-size:12px;color:#7b8aa8;margin-top:2px}
-    .nav{position:sticky;bottom:0;background:#fff;border-top:1px solid #e6ecff;display:flex;justify-content:space-around;padding:10px 6px env(safe-area-inset-bottom)}
-    .tab{display:flex;flex-direction:column;align-items:center;font-size:11.5px;color:#6b7a95}
-    .dot{width:28px;height:28px;border-radius:14px;background:#eef3ff;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
-    .tab.active{color:#114dff}
-    .tab.active .dot{background:#dfe7ff}
-    /* Tx page */
-    .appbar{position:sticky;top:0;background:#fff;height:56px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid #e6ecff;z-index:6}
-    .back{position:absolute;left:6px;height:56px;width:56px;border:0;background:none;font-size:22px}
-    .sum{background:#fff;padding:12px 16px;border-bottom:1px solid #e6ecff}
-    .sum .name{font-weight:800}
-    .sum .num{font-size:13px;color:#6b7a95;margin-top:2px}
-    .sum .bal{margin-top:8px;font-size:13px;color:#6b7a95}
+    /* Top */
+    .appbar{position:sticky;top:0;z-index:10;background:var(--kb-card);display:flex;align-items:center;justify-content:center;height:56px;border-bottom:1px solid #edf0f4}
+    .appbar .back{position:absolute;left:8px;background:none;border:0;font-size:22px;height:56px;width:48px}
+    .appbar h1{font-size:18px;margin:0}
+    /* Home content */
+    .wrap{padding:14px 14px 92px}
+    .banner{background:#e9f0ff;border:1px solid #dbe6ff;color:#1e3a8a;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px}
+    .section-title{font-weight:800;margin:16px 4px 8px}
+    .card{background:var(--kb-card);border-radius:var(--radius);box-shadow:0 1px 6px rgba(0,0,0,.06);padding:16px}
+    .kb-head{display:flex;align-items:center;justify-content:space-between;padding:14px 0 6px;color:#2841d8;font-weight:800}
+    #acctArea{display:block;border:1px solid #eff3fb;border-radius:14px;padding:16px;cursor:pointer}
+    #acctArea:active{transform:scale(.998)}
+    .acct-num{color:#64748b;margin:8px 0 12px}
+    .balance{font-size:30px;font-weight:900;letter-spacing:-.5px}
+    .btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+    .btn{height:48px;border-radius:12px;border:0;font-weight:800}
+    .btn.gray{background:#eef1f7;color:#111}
+    .btn.blue{background:var(--kb-blue);color:#fff}
+    .quick{display:flex;gap:18px;justify-content:space-between;margin-top:14px}
+    .qitem{display:flex;flex-direction:column;align-items:center;gap:8px;color:#374151;font-size:12px}
+    .qicon{width:48px;height:48px;border-radius:12px;background:#f0f3fb;display:flex;align-items:center;justify-content:center;font-size:20px}
+    /* Bottom tabs */
+    .tabs{position:fixed;left:0;right:0;bottom:0;background:var(--kb-card);border-top:1px solid #edf0f4;display:flex;justify-content:space-around;padding:8px 6px env(safe-area-inset-bottom)}
+    .tab{display:flex;flex-direction:column;align-items:center;font-size:11px;color:#6b7280;gap:4px}
+    .tab.active{color:var(--kb-blue)}
+    /* Tx view */
+    .header-box{padding:12px 16px 8px;border-bottom:1px solid #edf0f4}
+    .acc-title{font-size:22px;font-weight:900;margin:6px 0 2px}
+    .acc-num{font-size:14px;color:#64748b}
+    .row{display:flex;align-items:center;gap:12px;margin:14px 0 6px}
+    .row .btn{flex:1}
+    .chips{display:flex;gap:10px;align-items:center}
+    .chip{font-size:12px;color:#475569;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
+    .filterline{font-size:13px;color:#6b7280;margin:8px 0 0 16px}
+    .tx-list{margin-top:8px}
+    .tx-item{padding:14px 16px;border-bottom:1px solid #f0f2f7;background:#fff}
+    .tx-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:#9ca3af;font-size:12px}
+    .tx-name{font-weight:700}
+    .tx-amt{font-size:18px;font-weight:900}
+    .deposit{color:#2563eb}
+    .withdraw{color:#d32f2f}
+    .tx-bal{color:#94a3b8;font-size:12px;margin-top:2px;text-align:right}
+    /* Filter sheet */
+    .mask{position:fixed;inset:0;background:rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.2s}
+    .mask.show{opacity:1;pointer-events:auto}
+    .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-top-left-radius:20px;border-top-right-radius:20px;box-shadow:0 -10px 30px rgba(0,0,0,.2);transition:bottom .25s ease;z-index:30}
+    .sheet.show{bottom:0}
+    .sheet-head{padding:16px;border-bottom:1px solid #edf0f4;font-weight:800}
+    .sheet-body{padding:14px 16px 22px}
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .opt{padding:12px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;text-align:center}
+    .opt.selected{border-color:var(--kb-blue);box-shadow:0 0 0 3px rgba(12,59,217,.12);font-weight:800;color:var(--kb-blue)}
+    .range{display:flex;gap:10px}
+    .range input{flex:1;height:44px;border:1px solid #e5e7eb;border-radius:12px;padding:0 12px}
+    .confirm{margin-top:10px;width:100%;height:52px;border:0;border-radius:14px;background:var(--kb-blue);color:#fff;font-weight:900}
   </style>
 </head>
 <body>
-  <!-- Home -->
-  <section id="homeView" class="view">
-    <div class="top">
-      <div class="hello">사장님</div>
-      <div class="actions"><div class="ib">🔔</div><div class="ib">☰</div></div>
-    </div>
+  <!-- ===== HOME ===== -->
+  <section id="home" class="view">
+    <div class="wrap">
+      <div class="banner">한국투자증권 · 지금 국내 우량주 2주 뿌리는 중!</div>
 
-    <div class="card">
-      <div class="kb-header">Kbank</div>
-      <div class="acct-name">MY 입출금통장</div>
-      <div class="acct-num">100-116-054706</div>
-      <div class="balance" id="homeBal">1,700원</div>
-      <div class="btn-row">
-        <button class="btn secondary" type="button">가져오기</button>
-        <button id="toTx" class="btn primary" type="button">이체하기</button>
+      <h3 class="section-title">Kbank</h3>
+      <div class="card">
+        <!-- Clicking this goes to Tx screen -->
+        <div id="acctArea" aria-label="계좌 상세 보기">
+          <div class="acc-label" style="color:#64748b;margin-bottom:6px">MY 입출금통장 100-116-054706</div>
+          <div class="balance">1,700원</div>
+        </div>
+        <div class="btns">
+          <button class="btn gray" id="btnGet">가져오기</button>
+          <button class="btn blue" id="btnTransfer">이체하기</button>
+        </div>
+        <div class="quick">
+          <div class="qitem"><div class="qicon">💳</div><div>체크카드</div></div>
+          <div class="qitem"><div class="qicon">⚡</div><div>자동충전</div></div>
+          <div class="qitem"><div class="qicon">🏺</div><div>플러스박스</div></div>
+          <div class="qitem"><div class="qicon">⭐</div><div>입출금리워드</div></div>
+        </div>
       </div>
     </div>
 
-    <div class="section-title">내 자산</div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="font-weight:800">카드</div>
-        <div style="color:#0f1a2a;font-weight:900">37,000원</div>
-      </div>
-    </div>
-
-    <nav class="nav">
-      <div class="tab active"><div class="dot">🏠</div>홈</div>
-      <div class="tab"><div class="dot">👜</div>발견</div>
-      <div class="tab"><div class="dot">🎁</div>혜택</div>
-      <div class="tab"><div class="dot">📈</div>투자</div>
-      <div class="tab"><div class="dot">≡</div>전체</div>
+    <nav class="tabs">
+      <div class="tab active">홈</div>
+      <div class="tab">발견</div>
+      <div class="tab">혜택</div>
+      <div class="tab">투자</div>
+      <div class="tab">전체</div>
     </nav>
   </section>
 
-  <!-- Transactions -->
-  <section id="txView" class="view">
+  <!-- ===== TX ===== -->
+  <section id="tx" class="view">
     <div class="appbar">
-      <button class="back" aria-label="뒤로">‹</button>
-      <div style="font-weight:800">거래내역</div>
+      <button class="back" onclick="goHome()">‹</button>
+      <h1>입출금통장</h1>
     </div>
-    <div class="sum">
-      <div class="name">MY 입출금통장</div>
-      <div class="num">100-116-054706</div>
-      <div class="balance" style="font-size:26px;font-weight:900;margin:6px 0">1,700원</div>
-      <div class="bal">3개월 · 전체 · 최신순</div>
+
+    <div class="header-box">
+      <div class="acc-title">MY 입출금통장</div>
+      <div class="acc-num">100-116-054706</div>
+      <div class="row">
+        <button class="btn gray">가져오기</button>
+        <button class="btn blue">이체하기</button>
+      </div>
+      <div class="chips">
+        <button id="openFilter" class="chip">3개월·전체·최신순 ⌄</button>
+      </div>
     </div>
-    <div class="list" id="txList"></div>
-    <div style="height:20px"></div>
+
+    <div id="txList" class="tx-list"></div>
   </section>
 
-  <script>
-    // Simple SPA nav
-    const homeView = document.getElementById('homeView');
-    const txView = document.getElementById('txView');
-    document.getElementById('toTx').addEventListener('click', ()=>{
-      homeView.classList.add('hiddenLeft'); txView.classList.add('active');
-      window.scrollTo(0,0);
-    });
-    document.querySelector('.back').addEventListener('click', ()=>{
-      txView.classList.remove('active'); homeView.classList.remove('hiddenLeft');
-    });
-
-    // Transactions (from screenshots)
-    const tx = [
-      {date:'2025-11-07 08:46', name:'MY 카드 캐시백', type:'deposit', amount:300, bal:'1,700'},
-      {date:'2025-11-05 08:49', name:'MY 카드 캐시백', type:'deposit', amount:300, bal:'1,400'},
-      {date:'2025-11-05 08:23', name:'지에스25 금사공단로', type:'withdraw', amount:9500, bal:'1,100'}
-    ];
-    const list = document.getElementById('txList');
-    const fmt = n => Number(n).toLocaleString('ko-KR');
-    list.innerHTML = tx.map(t=>`
-      <div class="tx">
-        <div class="l">
-          <div class="name">${t.name}</div>
-          <div class="date">${t.date.replaceAll('-','.')}</div>
-        </div>
-        <div class="r">
-          <div class="${t.type==='deposit'?'plus':'minus'}">${t.type==='deposit'?'+':'-'}${fmt(t.amount)}원</div>
-          <div class="bal">잔액 ${t.bal}원</div>
-        </div>
+  <!-- Mask + Sheet -->
+  <div id="mask" class="mask"></div>
+  <div id="sheet" class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head">조회 조건</div>
+    <div class="sheet-body">
+      <div style="font-weight:800;margin:6px 0 8px">기간</div>
+      <div class="grid-4" id="periodBtns">
+        <button class="opt" data-period="1m">1개월</button>
+        <button class="opt selected" data-period="3m">3개월</button>
+        <button class="opt" data-period="6m">6개월</button>
+        <button class="opt" data-period="1y">1년</button>
       </div>
-    `).join('');
 
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', ()=>{
-        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+      <div style="font-weight:800;margin:16px 0 8px">유형</div>
+      <div class="grid-3" id="typeBtns">
+        <button class="opt selected" data-type="all">전체</button>
+        <button class="opt" data-type="withdraw">출금만</button>
+        <button class="opt" data-type="deposit">입금만</button>
+      </div>
+
+      <div style="font-weight:800;margin:16px 0 8px">순서</div>
+      <div class="grid-2" id="sortBtns">
+        <button class="opt selected" data-sort="latest">최신순</button>
+        <button class="opt" data-sort="oldest">과거순</button>
+      </div>
+
+      <div style="font-weight:800;margin:16px 0 8px">금액</div>
+      <div class="range">
+        <input id="minAmt" placeholder="최소" inputmode="numeric">
+        <input id="maxAmt" placeholder="최대" inputmode="numeric">
+      </div>
+
+      <button id="applyFilter" class="confirm">확인</button>
+    </div>
+  </div>
+
+  <script>
+    // Views
+    const home = document.getElementById('home');
+    const tx = document.getElementById('tx');
+    const acctArea = document.getElementById('acctArea');
+    const transferBtn = document.getElementById('btnTransfer');
+
+    function openTx(){ home.classList.add('hiddenLeft'); tx.classList.add('active'); }
+    function goHome(){ tx.classList.remove('active'); home.classList.remove('hiddenLeft'); }
+
+    acctArea.addEventListener('click', openTx);
+    transferBtn.addEventListener('click', ()=> alert('데모: 이체 기능은 준비 중입니다.'));
+
+    // Fake data
+    const data = [
+      {date:'2025-11-07', time:'08:46', name:'MY 카드 캐시백', type:'deposit', amount:300, balance:1700},
+      {date:'2025-11-05', time:'08:49', name:'MY 카드 캐시백', type:'deposit', amount:300, balance:1400},
+      {date:'2025-11-05', time:'08:23', name:'지에스25 금사공단로', type:'withdraw', amount:9500, balance:1100},
+      {date:'2025-10-28', time:'11:00', name:'편의점', type:'withdraw', amount:2000, balance:10600},
+      {date:'2025-09-13', time:'13:25', name:'플러스박스 이자', type:'deposit', amount:120, balance:12600}
+    ];
+
+    // Filter state
+    let state = { period:'3m', type:'all', sort:'latest', min:null, max:null };
+
+    const txList = document.getElementById('txList');
+    function fmtKR(n){ return Number(n).toLocaleString('ko-KR'); }
+    function withinPeriod(d, period){
+      const end = new Date('2025-11-08T23:59:59'); // 오늘 기준
+      const start = new Date(end);
+      if(period==='1m') start.setMonth(end.getMonth()-1);
+      if(period==='3m') start.setMonth(end.getMonth()-3);
+      if(period==='6m') start.setMonth(end.getMonth()-6);
+      if(period==='1y') start.setFullYear(end.getFullYear()-1);
+      const dt = new Date(d.date + 'T' + (d.time||'00:00'));
+      return dt >= start && dt <= end;
+    }
+    function render(){
+      let items = data.filter(d => withinPeriod(d, state.period));
+
+      if(state.type!=='all') items = items.filter(d => d.type===state.type);
+      if(state.min) items = items.filter(d => Math.abs(d.amount) >= Number(state.min));
+      if(state.max) items = items.filter(d => Math.abs(d.amount) <= Number(state.max));
+
+      items.sort((a,b)=> state.sort==='latest'
+        ? new Date(b.date+'T'+b.time) - new Date(a.date+'T'+a.time)
+        : new Date(a.date+'T'+a.time) - new Date(b.date+'T'+b.time));
+
+      txList.innerHTML = items.map(d=>{
+        const cls = d.type==='deposit' ? 'deposit' : 'withdraw';
+        const sign = d.type==='deposit' ? '+' : '-';
+        return `<div class="tx-item">
+          <div class="tx-top"><div>${d.date} | ${d.time}</div><div class="tx-amt ${cls}">${sign}${fmtKR(d.amount)}원</div></div>
+          <div class="tx-name">${d.name}</div>
+          <div class="tx-bal">잔액 ${fmtKR(d.balance)} 원</div>
+        </div>`
+      }).join('');
+    }
+    render();
+
+    // Sheet controls
+    const mask = document.getElementById('mask');
+    const sheet = document.getElementById('sheet');
+    const openFilter = document.getElementById('openFilter');
+    const applyBtn = document.getElementById('applyFilter');
+
+    function openSheet(){ mask.classList.add('show'); sheet.classList.add('show'); }
+    function closeSheet(){ mask.classList.remove('show'); sheet.classList.remove('show'); }
+    mask.addEventListener('click', closeSheet);
+    openFilter.addEventListener('click', openSheet);
+
+    function singleSelect(containerId, key){
+      const box = document.getElementById(containerId);
+      box.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.opt'); if(!btn) return;
+        Array.from(box.querySelectorAll('.opt')).forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state[key] = btn.dataset[key];
       });
     }
+    singleSelect('periodBtns', 'period');
+    singleSelect('typeBtns', 'type');
+    singleSelect('sortBtns', 'sort');
+
+    applyBtn.addEventListener('click', ()=>{
+      state.min = document.getElementById('minAmt').value.trim();
+      state.max = document.getElementById('maxAmt').value.trim();
+      // update chip label
+      const periodMap = { '1m':'1개월', '3m':'3개월', '6m':'6개월', '1y':'1년' };
+      const typeMap   = { 'all':'전체', 'withdraw':'출금만', 'deposit':'입금만' };
+      const sortMap   = { 'latest':'최신순', 'oldest':'과거순' };
+      document.getElementById('openFilter').textContent = `${periodMap[state.period]}·${typeMap[state.type]}·${sortMap[state.sort]} ⌄`;
+      render();
+      closeSheet();
+    });
   </script>
 </body>
 </html>
