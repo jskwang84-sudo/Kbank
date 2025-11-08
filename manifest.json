@@ -1,0 +1,20 @@
+{
+  "name": "Kbank Mock",
+  "short_name": "Kbank",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#114dff",
+  "theme_color": "#114dff",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
